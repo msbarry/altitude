@@ -4,7 +4,10 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <title>Altimeter</title>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
     <style type="text/css">
 ::-moz-selection {
     background: #b3d4fc;
@@ -43,7 +46,7 @@ h1 {
     font-size: 50px;
 }
 
-#info {
+#info, #header {
     color: #bbb;
     font-size: 15px;
 }
@@ -58,6 +61,7 @@ p {
     </style>
   </head>
   <body>
+    <div id="header"></div>
     <h1 id="altitude"></h1>
     <div id="info">Locating...</div>
     <p id="error"></p>
@@ -65,6 +69,15 @@ p {
 var info = document.getElementById("info");
 var dest = document.getElementById("altitude");
 var error = document.getElementById("error");
+var header = document.getElementById("header");
+var ROUNDINGS = [
+  10,
+  20,
+  50,
+  100,
+  1000
+];
+
 if (navigator.geolocation && navigator.geolocation.watchPosition) {
   navigator.geolocation.watchPosition(function (pos) {
     var feet = +pos.coords.altitude * 5280 / 1609.344;
@@ -78,19 +91,33 @@ if (navigator.geolocation && navigator.geolocation.watchPosition) {
     showError(d.message);
   })
 } else {
-  showError('Your browser does not support geolocation')
+  showError('Your device does not have an altitude sensor');
 }
 
 function showData(feet, accuracy) {
+  header.innerText = "Current altitude:";
   error.innerText = "";
-  var accuracyString = (typeof accuracy === 'number') ? (' +/-' + (+(accuracy).toFixed(0)).toLocaleString() + 'ft') : '';
-  dest.innerText = (+(feet).toFixed(0)).toLocaleString();
-  info.innerText = 'ft above sea level' + accuracyString;
+  var accuracyString = (typeof accuracy === 'number') ? (' +/-' + (+(accuracy).toFixed(0)).toLocaleString() + ' ft') : '';
+  dest.innerText = round(+feet, +accuracy) + ' ft';
+  info.innerText = accuracyString;
 }
 function showError(message) {
+  header.innerText = "";
   dest.innerText = "";
   info.innerText = "";
   error.innerText = message;
+}
+function round(feet, accuracy) {
+  if (typeof accuracy === 'number') {
+    var roundTo = 10;
+    for (var i = 0; i < ROUNDINGS.length && ROUNDINGS[i] <= accuracy / 2; i++) {
+      roundTo = ROUNDINGS[i];
+    }
+    var rounded = Math.round(feet / roundTo) * roundTo;
+    return (+rounded.toFixed(0)).toLocaleString();
+  } else {
+    return (+feet.toFixed(0)).toLocaleString();
+  }
 }
 
 if (window.applicationCache) {
