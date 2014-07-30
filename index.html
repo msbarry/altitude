@@ -21,6 +21,7 @@ html {
     font-size: 20px;
     line-height: 1.4;
     color: #737373;
+    text-align: center;
     background: #f0f0f0;
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
@@ -32,24 +33,19 @@ input {
 }
 
 body {
-    max-width: 500px;
-    _width: 500px;
-    padding: 30px 20px 10px 20px;
-    border: 1px solid #b3b3b3;
-    border-radius: 4px;
     margin: 0 auto;
-    box-shadow: 0 1px 10px #a7a7a7, inset 0 1px 0 #fff;
-    background: #fcfcfc;
+    width: 100%;
+    padding: 0;
 }
 
 h1 {
     margin: 0 10px;
     font-size: 50px;
-    text-align: center;
 }
 
-h1 span {
+#info {
     color: #bbb;
+    font-size: 15px;
 }
 
 p {
@@ -59,26 +55,25 @@ p {
 #error {
   color: #b94a48;
 }
-
-.container {
-    max-width: 380px;
-    _width: 380px;
-    margin: 0 auto;
-}
     </style>
   </head>
   <body>
-    <div class="container">
-      <h1 id="altitude">Getting Altitude...</h1>
-      <p id="error"></p>
-    </div>
+    <h1 id="altitude"></h1>
+    <div id="info">Locating...</div>
+    <p id="error"></p>
     <script type="text/javascript">
+var info = document.getElementById("info");
 var dest = document.getElementById("altitude");
 var error = document.getElementById("error");
 if (navigator.geolocation && navigator.geolocation.watchPosition) {
   navigator.geolocation.watchPosition(function (pos) {
     var feet = +pos.coords.altitude * 5280 / 1609.344;
-    showData(feet);
+    var accuracy = +pos.coords.altitudeAccuracy * 5280 / 1609.344;
+    if (!pos.coords || typeof pos.coords.altitude !== 'number') {
+      showError('Your device does not have an altitude sensor');
+    } else {
+      showData(feet, accuracy);
+    }
   }, function (d) {
     showError(d.message);
   })
@@ -86,13 +81,16 @@ if (navigator.geolocation && navigator.geolocation.watchPosition) {
   showError('Your browser does not support geolocation')
 }
 
-function showData(feet) {
+function showData(feet, accuracy) {
   error.innerText = "";
-  dest.innerHTML = (+(feet).toFixed(0)).toLocaleString() + ' <span>ft</span>';
+  var accuracyString = (typeof accuracy === 'number') ? (' +/-' + (+(accuracy).toFixed(0)).toLocaleString() + 'ft') : '';
+  dest.innerText = (+(feet).toFixed(0)).toLocaleString();
+  info.innerText = 'ft above sea level' + accuracyString;
 }
 function showError(message) {
   dest.innerText = "";
-  error.innerText = "Error: " + message;
+  info.innerText = "";
+  error.innerText = message;
 }
 
 if (window.applicationCache) {
