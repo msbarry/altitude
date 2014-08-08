@@ -1,9 +1,10 @@
 CACHE MANIFEST
 
-# v2
+# v1
 
 CACHE:
-/index.html
+/altitude/
+/altitude/index.html
 
 NETWORK:
 *
